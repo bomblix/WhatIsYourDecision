@@ -19,7 +19,11 @@
 		<div class="form-group">
 			<label for="issueDesription" class="col-sm-2 control-label">Options</label>
 			<div class="col-sm-10">
-				<input type="text" value.bind="newIssue.optionsFlat" id="issueOptions" class="form-control" />
+				<!--	<input type="text" value.bind="newIssue.optionsFlat" id="issueOptions" class="form-control" />-->
+				<template repeat.for="item of newIssue.options">
+					<input type="text" value.bind="item.name">
+				</template>
+				<button click.delegate="addOption()">+</button>
 			</div>
 		</div>
 
@@ -36,6 +40,9 @@
 				<dl>
 					<dt>${item.name} by <cite>${item.author.name}</cite></dt>
 					<dd>${item.description}</dd>
+                    <ul repeat.for="option of item.options ">
+                        <li>${option.name}</li>
+                    </div>
 				</dl>
 			</div>
 		</div>

@@ -123,9 +123,9 @@ define('model/issue',["require", "exports"], function (require, exports) {
     "use strict";
     var Issue = (function () {
         function Issue() {
+            this.options = new Array();
+            console.log("Options created");
         }
-        Issue.prototype.splitOptions = function () {
-        };
         return Issue;
     }());
     exports.Issue = Issue;
@@ -178,7 +178,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('modules/issues',["require", "exports", './../services/issueService', './../services/userService', 'aurelia-framework'], function (require, exports, issueService_1, userService_1, aurelia_framework_1) {
+define('modules/issues',["require", "exports", './../services/issueService', './../model/issue', './../services/userService', './../model/option', 'aurelia-framework'], function (require, exports, issueService_1, issue_1, userService_1, option_1, aurelia_framework_1) {
     "use strict";
     var Issues = (function () {
         function Issues(userService, issueService) {
@@ -187,11 +187,15 @@ define('modules/issues',["require", "exports", './../services/issueService', './
         }
         Issues.prototype.activate = function () {
             this.issues = this.issueService.list();
+            this.newIssue = new issue_1.Issue();
         };
         Issues.prototype.addIssue = function () {
             this.newIssue.author = this.userService.currentUser;
             this.issueService.add(this.newIssue);
-            this.newIssue = null;
+            this.newIssue = new issue_1.Issue();
+        };
+        Issues.prototype.addOption = function () {
+            this.newIssue.options.push(new option_1.Option("A"));
         };
         Issues = __decorate([
             aurelia_framework_1.inject(userService_1.UserService, issueService_1.IssueService), 
@@ -235,8 +239,8 @@ define('resources/index',["require", "exports"], function (require, exports) {
 });
 
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n\t<require from=\"bootstrap/css/bootstrap.css\"></require>\n\n\t<div class=\"container\">\n\t\t<nav class=\"navbar navbar-default\">\n\t\t\t<div class=\"container-fluid\">\n\t\t\t\t<!-- Brand and toggle get grouped for better mobile display -->\n\t\t\t\t<div class=\"navbar-header\">\n\t\t\t\t\t<button type=\"button\" class=\"navbar-toggle collapsed\" data-toggle=\"collapse\" data-target=\"#bs-example-navbar-collapse-1\"\n\t\t\t\t\t\taria-expanded=\"false\">\n        <span class=\"sr-only\">Toggle navigation</span>\n        <span class=\"icon-bar\"></span>\n        <span class=\"icon-bar\"></span>\n        <span class=\"icon-bar\"></span>\n      </button>\n\t\t\t\t\t<a class=\"navbar-brand\" href=\"#\">What is your decision?</a>\n\t\t\t\t</div>\n\n\t\t\t\t<!-- Collect the nav links, forms, and other content for toggling -->\n\t\t\t\t<div class=\"collapse navbar-collapse\" id=\"bs-example-navbar-collapse-1\">\n\t\t\t\t\t<ul class=\"nav navbar-nav\">\n\t\t\t\t\t\t<li repeat.for=\"row of router.navigation\" class=\"${row.isActive ? 'active' : ''}\">\n\t\t\t\t\t\t\t<a href.bind=\"row.href\">${row.title}</a>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ul>\n\n\t\t\t\t\t<form class=\"navbar-form navbar-right\">\n\t\t\t\t\t\t<select value.bind=\"currentUser\" change.trigger=\"setUser()\">\n        <option repeat.for=\"item of users\" model.bind=\"item\">${item.name}</option>\n      </select>\n\t\t\t\t\t</form>\n\n\t\t\t\t</div>\n\t\t\t\t<!-- /.navbar-collapse -->\n\t\t\t</div>\n\t\t\t<!-- /.container-fluid -->\n\t\t</nav>\n\n\t\t<div class=\"page-host\">\n\t\t\t<router-view></router-view>\n\t\t</div>\n\n\t</div>\n\n\t<footer class=\"footer text-center\">\n\t\tPowered by WhatIsYourDecision team\n\t</footer>\n\n</template>"; });
-define('text!modules/decisions.html', ['module'], function(module) { module.exports = "<template>\r\n    your decisions\r\n</template>"; });
-define('text!modules/home.html', ['module'], function(module) { module.exports = "<template>\r\n    Welcom in WhatIsYourDecision application.\r\n</template>"; });
-define('text!modules/issues.html', ['module'], function(module) { module.exports = "<template>\r\n\r\n\t<h3>Add new issue</h3>\r\n\r\n\t<form submit.trigger=\"addIssue()\" class=\"form-horizontal\">\r\n\t\t<div class=\"form-group\">\r\n\t\t\t<label for=\"issueName\" class=\"col-sm-2 control-label\">Name</label>\r\n\t\t\t<div class=\"col-sm-10\">\r\n\t\t\t\t<input type=\"text\" value.bind=\"newIssue.name\" id=\"issueName\" class=\"form-control\" />\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t\t<div class=\"form-group\">\r\n\t\t\t<label for=\"issueDesription\" class=\"col-sm-2 control-label\">Desciption</label>\r\n\t\t\t<div class=\"col-sm-10\">\r\n\t\t\t\t<textarea value.bind=\"newIssue.description\" id=\"issueDesription\" class=\"form-control\"></textarea>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\r\n\t\t<div class=\"form-group\">\r\n\t\t\t<label for=\"issueDesription\" class=\"col-sm-2 control-label\">Options</label>\r\n\t\t\t<div class=\"col-sm-10\">\r\n\t\t\t\t<input type=\"text\" value.bind=\"newIssue.optionsFlat\" id=\"issueOptions\" class=\"form-control\" />\r\n\t\t\t</div>\r\n\t\t</div>\r\n\r\n\t\t<div class=\"form-group\">\r\n\t\t\t<div class=\"col-sm-offset-2 col-sm-10\">\r\n\t\t\t\t<button type=\"submit\" class=\"btn btn-default\">Add issue</button>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t</form>\r\n\r\n\t<div repeat.for=\"item of issues\">\r\n\t\t<div class=\"list-group\">\r\n\t\t\t<div class=\"list-group-item\">\r\n\t\t\t\t<dl>\r\n\t\t\t\t\t<dt>${item.name} by <cite>${item.author.name}</cite></dt>\r\n\t\t\t\t\t<dd>${item.description}</dd>\r\n\t\t\t\t</dl>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t</div>\r\n</template>"; });
+define('text!modules/decisions.html', ['module'], function(module) { module.exports = "<template>\r\n    My decisions\r\n</template>"; });
+define('text!modules/home.html', ['module'], function(module) { module.exports = "<template>\r\n    Welcome in the WhatIsYourDecision application.\r\n</template>"; });
+define('text!modules/issues.html', ['module'], function(module) { module.exports = "<template>\r\n\r\n\t<h3>Add new issue</h3>\r\n\r\n\t<form submit.trigger=\"addIssue()\" class=\"form-horizontal\">\r\n\t\t<div class=\"form-group\">\r\n\t\t\t<label for=\"issueName\" class=\"col-sm-2 control-label\">Name</label>\r\n\t\t\t<div class=\"col-sm-10\">\r\n\t\t\t\t<input type=\"text\" value.bind=\"newIssue.name\" id=\"issueName\" class=\"form-control\" />\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t\t<div class=\"form-group\">\r\n\t\t\t<label for=\"issueDesription\" class=\"col-sm-2 control-label\">Desciption</label>\r\n\t\t\t<div class=\"col-sm-10\">\r\n\t\t\t\t<textarea value.bind=\"newIssue.description\" id=\"issueDesription\" class=\"form-control\"></textarea>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\r\n\t\t<div class=\"form-group\">\r\n\t\t\t<label for=\"issueDesription\" class=\"col-sm-2 control-label\">Options</label>\r\n\t\t\t<div class=\"col-sm-10\">\r\n\t\t\t\t<!--\t<input type=\"text\" value.bind=\"newIssue.optionsFlat\" id=\"issueOptions\" class=\"form-control\" />-->\r\n\t\t\t\t<template repeat.for=\"item of newIssue.options\">\r\n\t\t\t\t\t<input type=\"text\" value.bind=\"item.name\">\r\n\t\t\t\t</template>\r\n\t\t\t\t<button click.delegate=\"addOption()\">+</button>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\r\n\t\t<div class=\"form-group\">\r\n\t\t\t<div class=\"col-sm-offset-2 col-sm-10\">\r\n\t\t\t\t<button type=\"submit\" class=\"btn btn-default\">Add issue</button>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t</form>\r\n\r\n\t<div repeat.for=\"item of issues\">\r\n\t\t<div class=\"list-group\">\r\n\t\t\t<div class=\"list-group-item\">\r\n\t\t\t\t<dl>\r\n\t\t\t\t\t<dt>${item.name} by <cite>${item.author.name}</cite></dt>\r\n\t\t\t\t\t<dd>${item.description}</dd>\r\n                    <ul repeat.for=\"option of item.options \">\r\n                        <li>${option.name}</li>\r\n                    </div>\r\n\t\t\t\t</dl>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t</div>\r\n</template>"; });
 define('text!modules/toDecideIssues.html', ['module'], function(module) { module.exports = "<template>\r\n    List of issues waiting for your decision\r\n</template>"; });
 //# sourceMappingURL=app-bundle.js.map

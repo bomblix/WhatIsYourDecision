@@ -10,5 +10,7 @@ export class Issue {
     options: Option[];
 
     constructor(){   
+        this.options = new Array<Option>();
+        console.log("Options created");
     }
 }
