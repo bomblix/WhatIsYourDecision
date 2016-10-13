@@ -20,7 +20,7 @@ export class IssueService {
         return this._issues;
     }
 
-    public getIssuesToDecide(user: User) {
+    public getIssuesToVote(user: User) {
         return this._issues.filter(row => row.canUserVote(user)).map(x => new IssueToVote(x));
     }
 

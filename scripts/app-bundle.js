@@ -343,7 +343,7 @@ define('services/issueService',["require", "exports", './../model/issueToVote'],
         IssueService.prototype.list = function () {
             return this._issues;
         };
-        IssueService.prototype.getIssuesToDecide = function (user) {
+        IssueService.prototype.getIssuesToVote = function (user) {
             return this._issues.filter(function (row) { return row.canUserVote(user); }).map(function (x) { return new issueToVote_1.IssueToVote(x); });
         };
         IssueService.prototype.getUserDecisions = function (user) {
@@ -380,11 +380,10 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('modules/decisions',["require", "exports", './../services/userService', './../services/issueService', 'aurelia-framework'], function (require, exports, userService_1, issueService_1, aurelia_framework_1) {
+define('modules/decisions',["require", "exports", './../services/issueService', 'aurelia-framework'], function (require, exports, issueService_1, aurelia_framework_1) {
     "use strict";
     var Decisions = (function () {
-        function Decisions(userService, issueService) {
-            this.currentUser = userService.getCurrentUser();
+        function Decisions(issueService) {
             this.issueService = issueService;
         }
         Object.defineProperty(Decisions.prototype, "issues", {
@@ -398,8 +397,8 @@ define('modules/decisions',["require", "exports", './../services/userService', '
             this._issues = this.issueService.getDecidedIssues();
         };
         Decisions = __decorate([
-            aurelia_framework_1.inject(userService_1.UserService, issueService_1.IssueService), 
-            __metadata('design:paramtypes', [userService_1.UserService, issueService_1.IssueService])
+            aurelia_framework_1.inject(issueService_1.IssueService), 
+            __metadata('design:paramtypes', [issueService_1.IssueService])
         ], Decisions);
         return Decisions;
     }());
@@ -485,13 +484,13 @@ define('modules/toDecideIssues',["require", "exports", './../services/userServic
             this.userService = userService;
         }
         ToDecideIssues.prototype.activate = function () {
-            this.issues = this.issueService.getIssuesToDecide(this.userService.getCurrentUser());
+            this.issues = this.issueService.getIssuesToVote(this.userService.getCurrentUser());
         };
         ToDecideIssues.prototype.vote = function (issueToVote) {
             var user = this.userService.getCurrentUser();
             if (issueToVote.issue.canUserVote(user)) {
                 issueToVote.selectedOption.vote(user);
-                this.issues = this.issueService.getIssuesToDecide(this.userService.getCurrentUser());
+                this.issues = this.issueService.getIssuesToVote(this.userService.getCurrentUser());
             }
         };
         ToDecideIssues = __decorate([
