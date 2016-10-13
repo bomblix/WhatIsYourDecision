@@ -1,20 +1,20 @@
 import { UserService } from './../services/userService'
 import { IssueService } from './../services/issueService'
 import { User } from './../model/user'
-import { Issue } from './../model/issue'
+import { Decision } from './../model/decision'
 
 import { inject } from 'aurelia-framework'
 
 @inject(UserService, IssueService)
-export class Decisions {
+export class Votes {
 
     private currentUser: User;
     private issueService: IssueService;
 
-    private _issues: Issue[];
+    private _votes: Decision[];
 
-    get issues() {
-        return this._issues;
+    get votes() {
+        return this._votes;
     }
     constructor(userService: UserService, issueService: IssueService) {
         this.currentUser = userService.getCurrentUser();
@@ -22,6 +22,7 @@ export class Decisions {
     }
 
     activate() {
-        this._issues = this.issueService.getDecidedIssues();
+        this._votes = this.issueService.getUserDecisions(this.currentUser);
     }
+
 }

@@ -29,7 +29,9 @@ export class App {
       { route: [''], name: 'home', moduleId: './modules/home', nav: true, title: 'Home' },
       { route: ['issues'], name: 'issues', moduleId: './modules/issues', nav: true, title: 'Issues' },
       { route: ['todecide'], name: 'todecide', moduleId: './modules/toDecideIssues', nav: true, title: 'To decide' },
-      { route: ['decisions'], name: 'decisions', moduleId: './modules/decisions', nav: true, title: 'My decisions' },
+      { route: ['userVotes'], name: 'userVotes', moduleId: './modules/userVotes', nav: true, title: 'My votes' },
+      { route: ['votes'], name: 'votes', moduleId: './modules/votes', nav: true, title: 'Votes' },
+      { route: ['decisions'], name: 'decisions', moduleId: './modules/decisions', nav: true, title: 'Decisions' },
     ]);
 
     this.router = router;
@@ -37,5 +39,6 @@ export class App {
 
   setUser() {
     this.userService.switchUser(this.currentUser);
+    this.router.navigateToRoute("home");
   }
 }

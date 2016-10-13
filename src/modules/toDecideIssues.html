@@ -1,3 +1,23 @@
 <template>
-    List of issues waiting for your decision
+	<h3>List of issues waiting for your decision</h3>
+
+	<div repeat.for="item of issues">
+		<div class="list-group">
+			<div class="list-group-item">
+				<dl>
+					<dt>${item.issue.name} by <cite>${item.issue.author.name}</cite></dt>
+					<dd>${item.issue.description}</dd>
+					<form submit.delegate="vote(item)">
+						<ul repeat.for="option of item.issue.options ">
+							<li>
+								<input type="radio" model.bind="option" name="options" checked.bind="item.selectedOption" /> ${option.text}
+							</li>
+						</ul>
+						<button class="btn btn-default">Vote</button>
+					</form>
+				</dl>
+			</div>
+		</div>
+	</div>
+
 </template>

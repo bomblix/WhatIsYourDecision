@@ -1,3 +1,16 @@
 <template>
-    My decisions
+	<h3>Decisions</h3>
+
+	<div repeat.for="item of issues">
+		<div class="list-group">
+			<div class="list-group-item">
+				<dl>
+					<dt>${item.name}</dt>
+					<dd>${item.description}</dd>
+
+					<dd>Decision: <strong>${item.decision}</strong></dd>
+				</dl>
+			</div>
+		</div>
+	</div>
 </template>

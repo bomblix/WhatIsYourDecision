@@ -1,0 +1,16 @@
+<template>
+	<h3>My votes</h3>
+
+	<div repeat.for="item of votes">
+		<div class="list-group">
+			<div class="list-group-item">
+				<dl>
+					<dt>${item.issue.name}</dt>
+					<dd>${item.issue.description}</dd>
+
+					<dd>User ${item.userName} voted: <strong>${item.option.text}</strong></dd>
+				</dl>
+			</div>
+		</div>
+	</div>
+</template>

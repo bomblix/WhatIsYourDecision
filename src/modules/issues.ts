@@ -8,29 +8,39 @@ import { inject } from 'aurelia-framework';
 @inject(UserService, IssueService)
 
 export class Issues {
-    issues: Issue[];
-    issueService: IssueService;
-    userService: UserService;
-    newIssue: Issue;
-    currentUser: User;
+    private _issues: Issue[];
+    private _issueService: IssueService;
+    private _userService: UserService;
+    private _newIssue: Issue;
+    private _currentUser: User;
+
+    get newIssue() {
+        return this._newIssue;
+    }
+
+    get issues() {
+        return this._issues;
+    }
 
     constructor(userService: UserService, issueService: IssueService) {
-        this.issueService = issueService;
-        this.userService = userService;
+        this._issueService = issueService;
+        this._userService = userService;
     }
 
     activate() {
-        this.issues = this.issueService.list();
-        this.newIssue = new Issue();
+        this._issues = this._issueService.list();
+        this._newIssue = new Issue();
     }
 
-    addIssue() {
-        this.newIssue.author = this.userService.currentUser;
-        this.issueService.add(this.newIssue);
-        this.newIssue = new Issue();
+    public addIssue() {
+        this._newIssue.author = this._userService.currentUser;
+        this._newIssue.setRequiredUsers(this._userService.getAllUsers());
+
+        this._issueService.add(this._newIssue);
+        this._newIssue = new Issue();
     }
 
-    addOption() {
-        this.newIssue.options.push(new Option("A"));
+    public addOption() {
+        this._newIssue.options.push(new Option());
     }
 }
