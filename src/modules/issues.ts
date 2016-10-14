@@ -3,16 +3,23 @@ import { Issue } from './../model/issue';
 import { User } from './../model/user';
 import { UserService } from './../services/userService'
 import { Option } from './../model/option'
-import { inject } from 'aurelia-framework';
+import { inject, NewInstance } from 'aurelia-framework';
 
-@inject(UserService, IssueService)
+import { ValidationController } from 'aurelia-validation';
 
+@inject(UserService, IssueService, NewInstance.of(ValidationController))
 export class Issues {
     private _issues: Issue[];
     private _issueService: IssueService;
     private _userService: UserService;
     private _newIssue: Issue;
     private _currentUser: User;
+    private _validationController: ValidationController;
+    private _isErrorVisible: boolean;
+
+    get validationController() {
+        return this._validationController;
+    }
 
     get newIssue() {
         return this._newIssue;
@@ -22,9 +29,14 @@ export class Issues {
         return this._issues;
     }
 
-    constructor(userService: UserService, issueService: IssueService) {
+    get isErrorVisible() {
+        return this._isErrorVisible;
+    }
+
+    constructor(userService: UserService, issueService: IssueService, validationController: ValidationController) {
         this._issueService = issueService;
         this._userService = userService;
+        this._validationController = validationController;
     }
 
     activate() {
@@ -36,11 +48,18 @@ export class Issues {
         this._newIssue.author = this._userService.currentUser;
         this._newIssue.setRequiredUsers(this._userService.getAllUsers());
 
-        this._issueService.add(this._newIssue);
-        this._newIssue = new Issue();
+        this._validationController.validate().then(resul => {
+            if (resul.length == 0) {
+                this._issueService.add(this._newIssue);
+                this._newIssue = new Issue();
+                this._isErrorVisible = false;
+            } else {
+                this._isErrorVisible = true;
+            }
+        });
     }
 
     public addOption() {
-        this._newIssue.options.push(new Option());
+        this._newIssue.addEmptyOption();
     }
 }

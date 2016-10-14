@@ -124,6 +124,11 @@
             "main": "aurelia-templating-resources"
           },
           {
+            "name": "aurelia-validation",
+            "path": "../node_modules/aurelia-validation/dist/amd",
+            "main": "aurelia-validation"
+          },
+          {
             "name": "aurelia-templating-router",
             "path": "../node_modules/aurelia-templating-router/dist/amd",
             "main": "aurelia-templating-router"
@@ -134,8 +139,19 @@
             "main": "aurelia-testing",
             "env": "dev"
           },
-          "jquery", 
-          { "name": "bootstrap", "path": "../node_modules/bootstrap/dist", "main": "js/bootstrap.min", "deps": ["jquery"], "exports": "$", "resources": [ "css/bootstrap.css" ] }
+          "jquery",
+          {
+            "name": "bootstrap",
+            "path": "../node_modules/bootstrap/dist",
+            "main": "js/bootstrap.min",
+            "deps": [
+              "jquery"
+            ],
+            "exports": "$",
+            "resources": [
+              "css/bootstrap.css"
+            ]
+          }
         ]
       }
     ]

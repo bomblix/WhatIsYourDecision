@@ -1,4 +1,5 @@
 import { User } from './user';
+import {ValidationRules} from 'aurelia-validation'
 
 export class Option {
     private _text: string;
@@ -24,3 +25,7 @@ export class Option {
         this._votes.push(user);
     }
 }
+
+ValidationRules
+    .ensure('text').required()
+    .on(Option);

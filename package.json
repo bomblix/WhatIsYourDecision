@@ -8,9 +8,10 @@
   },
   "license": "MIT",
   "dependencies": {
+    "aurelia-animator-css": "^1.0.0",
     "aurelia-bootstrapper": "^1.0.0",
     "aurelia-fetch-client": "^1.0.0",
-    "aurelia-animator-css": "^1.0.0",
+    "aurelia-validation": "^0.13.1",
     "bluebird": "^3.4.1"
   },
   "peerDependencies": {},
@@ -42,5 +43,9 @@
     "karma-jasmine": "^1.0.2",
     "karma-typescript-preprocessor": "^0.2.1"
   },
-  "overrides": { "npm:jquery@^3.0.0": { "format": "amd" } }
+  "overrides": {
+    "npm:jquery@^3.0.0": {
+      "format": "amd"
+    }
+  }
 }

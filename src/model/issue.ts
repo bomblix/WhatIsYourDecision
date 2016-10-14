@@ -1,6 +1,7 @@
 import { User } from './user';
 import { Option } from './option';
 import { Decision } from './decision';
+import { ValidationRules } from 'aurelia-validation';
 
 import { inject } from 'aurelia-framework'
 
@@ -98,6 +99,11 @@ export class Issue {
         return decisions;
     }
 
+    public addEmptyOption(): void {
+        if (this.options.length < 5) {
+            this.options.push(new Option());
+        }
+    }
     private getAllVotes(): User[] {
         let array = new Array<User>();
         this._options.forEach(x => array = array.concat(x.votes));
@@ -105,3 +111,9 @@ export class Issue {
     }
 
 }
+
+ValidationRules
+    .ensure('name').required()
+    .ensure('description').required()
+    .ensure('options').required().minItems(2).maxItems(5)
+    .on(Issue);
