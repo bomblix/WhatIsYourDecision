@@ -338,7 +338,6 @@ define('services/issueService',["require", "exports", './../model/issueToVote'],
         }
         IssueService.prototype.add = function (issue) {
             this._issues.push(issue);
-            console.log("New issue added");
         };
         IssueService.prototype.list = function () {
             return this._issues;
@@ -365,6 +364,13 @@ define('services/issueService',["require", "exports", './../model/issueToVote'],
         };
         IssueService.prototype.getDecidedIssues = function () {
             return this._issues.filter(function (x) { return x.isDecided; });
+        };
+        IssueService.prototype.vote = function (issue, selectedOption, user) {
+            if (issue.canUserVote(user)) {
+                selectedOption.vote(user);
+                return true;
+            }
+            return false;
         };
         return IssueService;
     }());
@@ -480,17 +486,16 @@ define('modules/toDecideIssues',["require", "exports", './../services/userServic
     "use strict";
     var ToDecideIssues = (function () {
         function ToDecideIssues(userService, issueService) {
-            this.issueService = issueService;
-            this.userService = userService;
+            this._issueService = issueService;
+            this._userService = userService;
         }
         ToDecideIssues.prototype.activate = function () {
-            this.issues = this.issueService.getIssuesToVote(this.userService.getCurrentUser());
+            this.issues = this._issueService.getIssuesToVote(this._userService.getCurrentUser());
         };
         ToDecideIssues.prototype.vote = function (issueToVote) {
-            var user = this.userService.getCurrentUser();
-            if (issueToVote.issue.canUserVote(user)) {
-                issueToVote.selectedOption.vote(user);
-                this.issues = this.issueService.getIssuesToVote(this.userService.getCurrentUser());
+            var user = this._userService.getCurrentUser();
+            if (this._issueService.vote(issueToVote.issue, issueToVote.selectedOption, user)) {
+                this.issues = this._issueService.getIssuesToVote(this._userService.getCurrentUser());
             }
         };
         ToDecideIssues = __decorate([
@@ -584,5 +589,5 @@ define('text!modules/home.html', ['module'], function(module) { module.exports =
 define('text!modules/issues.html', ['module'], function(module) { module.exports = "<template>\r\n\r\n\t<h3>Add new issue</h3>\r\n\r\n\t<form submit.trigger=\"addIssue()\" class=\"form-horizontal\">\r\n\t\t<div class=\"form-group\">\r\n\t\t\t<label for=\"issueName\" class=\"col-sm-2 control-label\">Name</label>\r\n\t\t\t<div class=\"col-sm-10\">\r\n\t\t\t\t<input type=\"text\" value.bind=\"newIssue.name\" id=\"issueName\" class=\"form-control\" />\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t\t<div class=\"form-group\">\r\n\t\t\t<label for=\"issueDesription\" class=\"col-sm-2 control-label\">Desciption</label>\r\n\t\t\t<div class=\"col-sm-10\">\r\n\t\t\t\t<textarea value.bind=\"newIssue.description\" id=\"issueDesription\" class=\"form-control\"></textarea>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\r\n\t\t<div class=\"form-group\">\r\n\t\t\t<label for=\"issueDesription\" class=\"col-sm-2 control-label\">Options</label>\r\n\t\t\t<div class=\"col-sm-10\">\r\n\t\t\t\t<template repeat.for=\"item of newIssue.options\">\r\n\t\t\t\t\t<input type=\"text\" value.bind=\"item.text\">\r\n\t\t\t\t</template>\r\n\t\t\t\t<button click.delegate=\"addOption()\">+</button>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\r\n\t\t<div class=\"form-group\">\r\n\t\t\t<div class=\"col-sm-offset-2 col-sm-10\">\r\n\t\t\t\t<button type=\"submit\" class=\"btn btn-default\">Add issue</button>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t</form>\r\n\r\n\t<div repeat.for=\"item of issues\">\r\n\t\t<div class=\"list-group\">\r\n\t\t\t<div class=\"list-group-item\">\r\n\t\t\t\t<dl>\r\n\t\t\t\t\t<dt> <span show.bind=\"item.isDecided\" class=\"label label-success\">Decided</span> ${item.name} by <cite>${item.author.name}</cite></dt>\r\n\t\t\t\t\t<dd>${item.description}</dd>\r\n\t\t\t\t\t<ul repeat.for=\"option of item.options \">\r\n\t\t\t\t\t\t<li>\r\n\t\t\t\t\t\t\t${option.text} [${option.votes.length}]\r\n\t\t\t\t\t\t</li>\r\n\t\t\t\t\t</ul>\r\n\t\t\t\t\t<dd>Votes ${item.numberOfVotes} / ${item.numberOfRequiredVotes}</dd>\r\n\t\t\t\t</dl>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t</div>\r\n</template>"; });
 define('text!modules/toDecideIssues.html', ['module'], function(module) { module.exports = "<template>\r\n\t<h3>List of issues waiting for your decision</h3>\r\n\r\n\t<div repeat.for=\"item of issues\">\r\n\t\t<div class=\"list-group\">\r\n\t\t\t<div class=\"list-group-item\">\r\n\t\t\t\t<dl>\r\n\t\t\t\t\t<dt>${item.issue.name} by <cite>${item.issue.author.name}</cite></dt>\r\n\t\t\t\t\t<dd>${item.issue.description}</dd>\r\n\t\t\t\t\t<form submit.delegate=\"vote(item)\">\r\n\t\t\t\t\t\t<ul repeat.for=\"option of item.issue.options \">\r\n\t\t\t\t\t\t\t<li>\r\n\t\t\t\t\t\t\t\t<input type=\"radio\" model.bind=\"option\" name=\"options\" checked.bind=\"item.selectedOption\" /> ${option.text}\r\n\t\t\t\t\t\t\t</li>\r\n\t\t\t\t\t\t</ul>\r\n\t\t\t\t\t\t<button class=\"btn btn-default\">Vote</button>\r\n\t\t\t\t\t</form>\r\n\t\t\t\t</dl>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t</div>\r\n\r\n</template>"; });
 define('text!modules/userVotes.html', ['module'], function(module) { module.exports = "<template>\r\n\t<h3>My votes</h3>\r\n\r\n\t<div repeat.for=\"item of votes\">\r\n\t\t<div class=\"list-group\">\r\n\t\t\t<div class=\"list-group-item\">\r\n\t\t\t\t<dl>\r\n\t\t\t\t\t<dt>${item.issue.name}</dt>\r\n\t\t\t\t\t<dd>${item.issue.description}</dd>\r\n\r\n\t\t\t\t\t<dd>Your vote: <strong>${item.option.text}</strong></dd>\r\n\t\t\t\t</dl>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t</div>\r\n</template>"; });
-define('text!modules/votes.html', ['module'], function(module) { module.exports = "<template>\r\n\t<h3>My votes</h3>\r\n\r\n\t<div repeat.for=\"item of votes\">\r\n\t\t<div class=\"list-group\">\r\n\t\t\t<div class=\"list-group-item\">\r\n\t\t\t\t<dl>\r\n\t\t\t\t\t<dt>${item.issue.name}</dt>\r\n\t\t\t\t\t<dd>${item.issue.description}</dd>\r\n\r\n\t\t\t\t\t<dd>User ${item.userName} voted: <strong>${item.option.text}</strong></dd>\r\n\t\t\t\t</dl>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t</div>\r\n</template>"; });
+define('text!modules/votes.html', ['module'], function(module) { module.exports = "<template>\r\n\t<h3>All votes</h3>\r\n\r\n\t<div repeat.for=\"item of votes\">\r\n\t\t<div class=\"list-group\">\r\n\t\t\t<div class=\"list-group-item\">\r\n\t\t\t\t<dl>\r\n\t\t\t\t\t<dt>${item.issue.name}</dt>\r\n\t\t\t\t\t<dd>${item.issue.description}</dd>\r\n\r\n\t\t\t\t\t<dd>User ${item.userName} voted: <strong>${item.option.text}</strong></dd>\r\n\t\t\t\t</dl>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t</div>\r\n</template>"; });
 //# sourceMappingURL=app-bundle.js.map

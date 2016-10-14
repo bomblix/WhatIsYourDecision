@@ -5,11 +5,11 @@ export class IssueToVote {
     private _issue: Issue;
     private _selectedOption: Option;
 
-    get issue() {
+    get issue(): Issue {
         return this._issue;
     }
 
-    get selectedOption() {
+    get selectedOption(): Option {
         return this._selectedOption;
     }
 

@@ -7,25 +7,24 @@ import { inject } from 'aurelia-framework';
 @inject(UserService, IssueService)
 
 export class ToDecideIssues {
-    issueService: IssueService;
-    userService: UserService;
+    private _issueService: IssueService;
+    private _userService: UserService;
 
     issues: IssueToVote[];
 
     constructor(userService: UserService, issueService: IssueService) {
-        this.issueService = issueService;
-        this.userService = userService;
+        this._issueService = issueService;
+        this._userService = userService;
     }
 
     activate() {
-        this.issues = this.issueService.getIssuesToVote(this.userService.getCurrentUser());
+        this.issues = this._issueService.getIssuesToVote(this._userService.getCurrentUser());
     }
 
     public vote(issueToVote: IssueToVote) {
-        let user = this.userService.getCurrentUser();
-        if (issueToVote.issue.canUserVote(user)) {
-            issueToVote.selectedOption.vote(user);
-            this.issues = this.issueService.getIssuesToVote(this.userService.getCurrentUser());
+        let user = this._userService.getCurrentUser();
+        if (this._issueService.vote(issueToVote.issue, issueToVote.selectedOption, user)) {
+            this.issues = this._issueService.getIssuesToVote(this._userService.getCurrentUser());
         }
     }
 }

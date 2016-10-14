@@ -10056,6 +10056,162 @@ define('aurelia-dependency-injection',['exports', 'aurelia-metadata', 'aurelia-p
     };
   }
 });
+define('aurelia-event-aggregator',['exports', 'aurelia-logging'], function (exports, _aureliaLogging) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.EventAggregator = undefined;
+  exports.includeEventsIn = includeEventsIn;
+  exports.configure = configure;
+
+  var LogManager = _interopRequireWildcard(_aureliaLogging);
+
+  function _interopRequireWildcard(obj) {
+    if (obj && obj.__esModule) {
+      return obj;
+    } else {
+      var newObj = {};
+
+      if (obj != null) {
+        for (var key in obj) {
+          if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key];
+        }
+      }
+
+      newObj.default = obj;
+      return newObj;
+    }
+  }
+
+  
+
+  var logger = LogManager.getLogger('event-aggregator');
+
+  var Handler = function () {
+    function Handler(messageType, callback) {
+      
+
+      this.messageType = messageType;
+      this.callback = callback;
+    }
+
+    Handler.prototype.handle = function handle(message) {
+      if (message instanceof this.messageType) {
+        this.callback.call(null, message);
+      }
+    };
+
+    return Handler;
+  }();
+
+  var EventAggregator = exports.EventAggregator = function () {
+    function EventAggregator() {
+      
+
+      this.eventLookup = {};
+      this.messageHandlers = [];
+    }
+
+    EventAggregator.prototype.publish = function publish(event, data) {
+      var subscribers = void 0;
+      var i = void 0;
+
+      if (!event) {
+        throw new Error('Event was invalid.');
+      }
+
+      if (typeof event === 'string') {
+        subscribers = this.eventLookup[event];
+        if (subscribers) {
+          subscribers = subscribers.slice();
+          i = subscribers.length;
+
+          try {
+            while (i--) {
+              subscribers[i](data, event);
+            }
+          } catch (e) {
+            logger.error(e);
+          }
+        }
+      } else {
+        subscribers = this.messageHandlers.slice();
+        i = subscribers.length;
+
+        try {
+          while (i--) {
+            subscribers[i].handle(event);
+          }
+        } catch (e) {
+          logger.error(e);
+        }
+      }
+    };
+
+    EventAggregator.prototype.subscribe = function subscribe(event, callback) {
+      var handler = void 0;
+      var subscribers = void 0;
+
+      if (!event) {
+        throw new Error('Event channel/type was invalid.');
+      }
+
+      if (typeof event === 'string') {
+        handler = callback;
+        subscribers = this.eventLookup[event] || (this.eventLookup[event] = []);
+      } else {
+        handler = new Handler(event, callback);
+        subscribers = this.messageHandlers;
+      }
+
+      subscribers.push(handler);
+
+      return {
+        dispose: function dispose() {
+          var idx = subscribers.indexOf(handler);
+          if (idx !== -1) {
+            subscribers.splice(idx, 1);
+          }
+        }
+      };
+    };
+
+    EventAggregator.prototype.subscribeOnce = function subscribeOnce(event, callback) {
+      var sub = this.subscribe(event, function (a, b) {
+        sub.dispose();
+        return callback(a, b);
+      });
+
+      return sub;
+    };
+
+    return EventAggregator;
+  }();
+
+  function includeEventsIn(obj) {
+    var ea = new EventAggregator();
+
+    obj.subscribeOnce = function (event, callback) {
+      return ea.subscribeOnce(event, callback);
+    };
+
+    obj.subscribe = function (event, callback) {
+      return ea.subscribe(event, callback);
+    };
+
+    obj.publish = function (event, data) {
+      ea.publish(event, data);
+    };
+
+    return ea;
+  }
+
+  function configure(config) {
+    config.instance(EventAggregator, includeEventsIn(config.aurelia));
+  }
+});
 define('aurelia-framework',['exports', 'aurelia-dependency-injection', 'aurelia-binding', 'aurelia-metadata', 'aurelia-templating', 'aurelia-loader', 'aurelia-task-queue', 'aurelia-path', 'aurelia-pal', 'aurelia-logging'], function (exports, _aureliaDependencyInjection, _aureliaBinding, _aureliaMetadata, _aureliaTemplating, _aureliaLoader, _aureliaTaskQueue, _aureliaPath, _aureliaPal, _aureliaLogging) {
   'use strict';
 
@@ -10604,162 +10760,6 @@ define('aurelia-framework',['exports', 'aurelia-dependency-injection', 'aurelia-
 
   exports.FrameworkConfiguration = FrameworkConfiguration;
   var LogManager = exports.LogManager = TheLogManager;
-});
-define('aurelia-event-aggregator',['exports', 'aurelia-logging'], function (exports, _aureliaLogging) {
-  'use strict';
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.EventAggregator = undefined;
-  exports.includeEventsIn = includeEventsIn;
-  exports.configure = configure;
-
-  var LogManager = _interopRequireWildcard(_aureliaLogging);
-
-  function _interopRequireWildcard(obj) {
-    if (obj && obj.__esModule) {
-      return obj;
-    } else {
-      var newObj = {};
-
-      if (obj != null) {
-        for (var key in obj) {
-          if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key];
-        }
-      }
-
-      newObj.default = obj;
-      return newObj;
-    }
-  }
-
-  
-
-  var logger = LogManager.getLogger('event-aggregator');
-
-  var Handler = function () {
-    function Handler(messageType, callback) {
-      
-
-      this.messageType = messageType;
-      this.callback = callback;
-    }
-
-    Handler.prototype.handle = function handle(message) {
-      if (message instanceof this.messageType) {
-        this.callback.call(null, message);
-      }
-    };
-
-    return Handler;
-  }();
-
-  var EventAggregator = exports.EventAggregator = function () {
-    function EventAggregator() {
-      
-
-      this.eventLookup = {};
-      this.messageHandlers = [];
-    }
-
-    EventAggregator.prototype.publish = function publish(event, data) {
-      var subscribers = void 0;
-      var i = void 0;
-
-      if (!event) {
-        throw new Error('Event was invalid.');
-      }
-
-      if (typeof event === 'string') {
-        subscribers = this.eventLookup[event];
-        if (subscribers) {
-          subscribers = subscribers.slice();
-          i = subscribers.length;
-
-          try {
-            while (i--) {
-              subscribers[i](data, event);
-            }
-          } catch (e) {
-            logger.error(e);
-          }
-        }
-      } else {
-        subscribers = this.messageHandlers.slice();
-        i = subscribers.length;
-
-        try {
-          while (i--) {
-            subscribers[i].handle(event);
-          }
-        } catch (e) {
-          logger.error(e);
-        }
-      }
-    };
-
-    EventAggregator.prototype.subscribe = function subscribe(event, callback) {
-      var handler = void 0;
-      var subscribers = void 0;
-
-      if (!event) {
-        throw new Error('Event channel/type was invalid.');
-      }
-
-      if (typeof event === 'string') {
-        handler = callback;
-        subscribers = this.eventLookup[event] || (this.eventLookup[event] = []);
-      } else {
-        handler = new Handler(event, callback);
-        subscribers = this.messageHandlers;
-      }
-
-      subscribers.push(handler);
-
-      return {
-        dispose: function dispose() {
-          var idx = subscribers.indexOf(handler);
-          if (idx !== -1) {
-            subscribers.splice(idx, 1);
-          }
-        }
-      };
-    };
-
-    EventAggregator.prototype.subscribeOnce = function subscribeOnce(event, callback) {
-      var sub = this.subscribe(event, function (a, b) {
-        sub.dispose();
-        return callback(a, b);
-      });
-
-      return sub;
-    };
-
-    return EventAggregator;
-  }();
-
-  function includeEventsIn(obj) {
-    var ea = new EventAggregator();
-
-    obj.subscribeOnce = function (event, callback) {
-      return ea.subscribeOnce(event, callback);
-    };
-
-    obj.subscribe = function (event, callback) {
-      return ea.subscribe(event, callback);
-    };
-
-    obj.publish = function (event, data) {
-      ea.publish(event, data);
-    };
-
-    return ea;
-  }
-
-  function configure(config) {
-    config.instance(EventAggregator, includeEventsIn(config.aurelia));
-  }
 });
 define('aurelia-history',['exports'], function (exports) {
   'use strict';
@@ -11543,64 +11543,6 @@ define('aurelia-loader-default',['exports', 'aurelia-loader', 'aurelia-pal', 'au
     };
   }
 });
-define('aurelia-logging-console',['exports', 'aurelia-logging'], function (exports, _aureliaLogging) {
-  'use strict';
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.ConsoleAppender = undefined;
-
-  
-
-  var ConsoleAppender = exports.ConsoleAppender = function () {
-    function ConsoleAppender() {
-      
-    }
-
-    ConsoleAppender.prototype.debug = function debug(logger) {
-      var _console;
-
-      for (var _len = arguments.length, rest = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-        rest[_key - 1] = arguments[_key];
-      }
-
-      (_console = console).debug.apply(_console, ['DEBUG [' + logger.id + ']'].concat(rest));
-    };
-
-    ConsoleAppender.prototype.info = function info(logger) {
-      var _console2;
-
-      for (var _len2 = arguments.length, rest = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-        rest[_key2 - 1] = arguments[_key2];
-      }
-
-      (_console2 = console).info.apply(_console2, ['INFO [' + logger.id + ']'].concat(rest));
-    };
-
-    ConsoleAppender.prototype.warn = function warn(logger) {
-      var _console3;
-
-      for (var _len3 = arguments.length, rest = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-        rest[_key3 - 1] = arguments[_key3];
-      }
-
-      (_console3 = console).warn.apply(_console3, ['WARN [' + logger.id + ']'].concat(rest));
-    };
-
-    ConsoleAppender.prototype.error = function error(logger) {
-      var _console4;
-
-      for (var _len4 = arguments.length, rest = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
-        rest[_key4 - 1] = arguments[_key4];
-      }
-
-      (_console4 = console).error.apply(_console4, ['ERROR [' + logger.id + ']'].concat(rest));
-    };
-
-    return ConsoleAppender;
-  }();
-});
 define('aurelia-logging',['exports'], function (exports) {
   'use strict';
 
@@ -11727,6 +11669,64 @@ define('aurelia-logging',['exports'], function (exports) {
     Logger.prototype.error = function error(message) {};
 
     return Logger;
+  }();
+});
+define('aurelia-logging-console',['exports', 'aurelia-logging'], function (exports, _aureliaLogging) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.ConsoleAppender = undefined;
+
+  
+
+  var ConsoleAppender = exports.ConsoleAppender = function () {
+    function ConsoleAppender() {
+      
+    }
+
+    ConsoleAppender.prototype.debug = function debug(logger) {
+      var _console;
+
+      for (var _len = arguments.length, rest = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        rest[_key - 1] = arguments[_key];
+      }
+
+      (_console = console).debug.apply(_console, ['DEBUG [' + logger.id + ']'].concat(rest));
+    };
+
+    ConsoleAppender.prototype.info = function info(logger) {
+      var _console2;
+
+      for (var _len2 = arguments.length, rest = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+        rest[_key2 - 1] = arguments[_key2];
+      }
+
+      (_console2 = console).info.apply(_console2, ['INFO [' + logger.id + ']'].concat(rest));
+    };
+
+    ConsoleAppender.prototype.warn = function warn(logger) {
+      var _console3;
+
+      for (var _len3 = arguments.length, rest = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+        rest[_key3 - 1] = arguments[_key3];
+      }
+
+      (_console3 = console).warn.apply(_console3, ['WARN [' + logger.id + ']'].concat(rest));
+    };
+
+    ConsoleAppender.prototype.error = function error(logger) {
+      var _console4;
+
+      for (var _len4 = arguments.length, rest = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+        rest[_key4 - 1] = arguments[_key4];
+      }
+
+      (_console4 = console).error.apply(_console4, ['ERROR [' + logger.id + ']'].concat(rest));
+    };
+
+    return ConsoleAppender;
   }();
 });
 define('aurelia-metadata',['exports', 'aurelia-pal'], function (exports, _aureliaPal) {
@@ -12008,6 +12008,87 @@ define('aurelia-metadata',['exports', 'aurelia-pal'], function (exports, _aureli
 
     return result;
   };
+});
+define('aurelia-pal',['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.AggregateError = AggregateError;
+  exports.initializePAL = initializePAL;
+  function AggregateError(message, innerError, skipIfAlreadyAggregate) {
+    if (innerError) {
+      if (innerError.innerError && skipIfAlreadyAggregate) {
+        return innerError;
+      }
+
+      var separator = '\n------------------------------------------------\n';
+
+      message += separator + 'Inner Error:\n';
+
+      if (typeof innerError === 'string') {
+        message += 'Message: ' + innerError;
+      } else {
+        if (innerError.message) {
+          message += 'Message: ' + innerError.message;
+        } else {
+          message += 'Unknown Inner Error Type. Displaying Inner Error as JSON:\n ' + JSON.stringify(innerError, null, '  ');
+        }
+
+        if (innerError.stack) {
+          message += '\nInner Error Stack:\n' + innerError.stack;
+          message += '\nEnd Inner Error Stack';
+        }
+      }
+
+      message += separator;
+    }
+
+    var e = new Error(message);
+    if (innerError) {
+      e.innerError = innerError;
+    }
+
+    return e;
+  }
+
+  var FEATURE = exports.FEATURE = {};
+
+  var PLATFORM = exports.PLATFORM = {
+    noop: function noop() {},
+    eachModule: function eachModule() {}
+  };
+
+  PLATFORM.global = function () {
+    if (typeof self !== 'undefined') {
+      return self;
+    }
+
+    if (typeof global !== 'undefined') {
+      return global;
+    }
+
+    return new Function('return this')();
+  }();
+
+  var DOM = exports.DOM = {};
+
+  function initializePAL(callback) {
+    if (typeof Object.getPropertyDescriptor !== 'function') {
+      Object.getPropertyDescriptor = function (subject, name) {
+        var pd = Object.getOwnPropertyDescriptor(subject, name);
+        var proto = Object.getPrototypeOf(subject);
+        while (typeof pd === 'undefined' && proto !== null) {
+          pd = Object.getOwnPropertyDescriptor(proto, name);
+          proto = Object.getPrototypeOf(proto);
+        }
+        return pd;
+      };
+    }
+
+    callback(PLATFORM, FEATURE, DOM);
+  }
 });
 define('aurelia-pal-browser',['exports', 'aurelia-pal'], function (exports, _aureliaPal) {
   'use strict';
@@ -12524,87 +12605,6 @@ define('aurelia-pal-browser',['exports', 'aurelia-pal'], function (exports, _aur
         }
       });
     });
-  }
-});
-define('aurelia-pal',['exports'], function (exports) {
-  'use strict';
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.AggregateError = AggregateError;
-  exports.initializePAL = initializePAL;
-  function AggregateError(message, innerError, skipIfAlreadyAggregate) {
-    if (innerError) {
-      if (innerError.innerError && skipIfAlreadyAggregate) {
-        return innerError;
-      }
-
-      var separator = '\n------------------------------------------------\n';
-
-      message += separator + 'Inner Error:\n';
-
-      if (typeof innerError === 'string') {
-        message += 'Message: ' + innerError;
-      } else {
-        if (innerError.message) {
-          message += 'Message: ' + innerError.message;
-        } else {
-          message += 'Unknown Inner Error Type. Displaying Inner Error as JSON:\n ' + JSON.stringify(innerError, null, '  ');
-        }
-
-        if (innerError.stack) {
-          message += '\nInner Error Stack:\n' + innerError.stack;
-          message += '\nEnd Inner Error Stack';
-        }
-      }
-
-      message += separator;
-    }
-
-    var e = new Error(message);
-    if (innerError) {
-      e.innerError = innerError;
-    }
-
-    return e;
-  }
-
-  var FEATURE = exports.FEATURE = {};
-
-  var PLATFORM = exports.PLATFORM = {
-    noop: function noop() {},
-    eachModule: function eachModule() {}
-  };
-
-  PLATFORM.global = function () {
-    if (typeof self !== 'undefined') {
-      return self;
-    }
-
-    if (typeof global !== 'undefined') {
-      return global;
-    }
-
-    return new Function('return this')();
-  }();
-
-  var DOM = exports.DOM = {};
-
-  function initializePAL(callback) {
-    if (typeof Object.getPropertyDescriptor !== 'function') {
-      Object.getPropertyDescriptor = function (subject, name) {
-        var pd = Object.getOwnPropertyDescriptor(subject, name);
-        var proto = Object.getPrototypeOf(subject);
-        while (typeof pd === 'undefined' && proto !== null) {
-          pd = Object.getOwnPropertyDescriptor(proto, name);
-          proto = Object.getPrototypeOf(proto);
-        }
-        return pd;
-      };
-    }
-
-    callback(PLATFORM, FEATURE, DOM);
   }
 });
 define('aurelia-path',['exports'], function (exports) {
@@ -34892,4 +34892,4 @@ define("bootstrap/js/bootstrap.min", ["jquery"], (function (global) {
 }(this)));
 ;define('bootstrap', ['bootstrap/js/bootstrap.min'], function (main) { return main; });
 
-function _aureliaConfigureModuleLoader(){requirejs.config({"baseUrl":"src/","paths":{"text":"../scripts/text","aurelia-binding":"../node_modules\\aurelia-binding\\dist\\amd\\aurelia-binding","aurelia-bootstrapper":"../node_modules\\aurelia-bootstrapper\\dist\\amd\\aurelia-bootstrapper","aurelia-dependency-injection":"../node_modules\\aurelia-dependency-injection\\dist\\amd\\aurelia-dependency-injection","aurelia-framework":"../node_modules\\aurelia-framework\\dist\\amd\\aurelia-framework","aurelia-event-aggregator":"../node_modules\\aurelia-event-aggregator\\dist\\amd\\aurelia-event-aggregator","aurelia-history":"../node_modules\\aurelia-history\\dist\\amd\\aurelia-history","aurelia-history-browser":"../node_modules\\aurelia-history-browser\\dist\\amd\\aurelia-history-browser","aurelia-loader":"../node_modules\\aurelia-loader\\dist\\amd\\aurelia-loader","aurelia-loader-default":"../node_modules\\aurelia-loader-default\\dist\\amd\\aurelia-loader-default","aurelia-logging-console":"../node_modules\\aurelia-logging-console\\dist\\amd\\aurelia-logging-console","aurelia-logging":"../node_modules\\aurelia-logging\\dist\\amd\\aurelia-logging","aurelia-metadata":"../node_modules\\aurelia-metadata\\dist\\amd\\aurelia-metadata","aurelia-pal-browser":"../node_modules\\aurelia-pal-browser\\dist\\amd\\aurelia-pal-browser","aurelia-pal":"../node_modules\\aurelia-pal\\dist\\amd\\aurelia-pal","aurelia-path":"../node_modules\\aurelia-path\\dist\\amd\\aurelia-path","aurelia-polyfills":"../node_modules\\aurelia-polyfills\\dist\\amd\\aurelia-polyfills","aurelia-route-recognizer":"../node_modules\\aurelia-route-recognizer\\dist\\amd\\aurelia-route-recognizer","aurelia-router":"../node_modules\\aurelia-router\\dist\\amd\\aurelia-router","aurelia-task-queue":"../node_modules\\aurelia-task-queue\\dist\\amd\\aurelia-task-queue","aurelia-templating":"../node_modules\\aurelia-templating\\dist\\amd\\aurelia-templating","aurelia-templating-binding":"../node_modules\\aurelia-templating-binding\\dist\\amd\\aurelia-templating-binding","jquery":"../node_modules\\jquery\\dist\\jquery","app-bundle":"../scripts/app-bundle"},"packages":[{"name":"aurelia-templating-resources","location":"../node_modules/aurelia-templating-resources/dist/amd","main":"aurelia-templating-resources"},{"name":"aurelia-templating-router","location":"../node_modules/aurelia-templating-router/dist/amd","main":"aurelia-templating-router"},{"name":"aurelia-testing","location":"../node_modules/aurelia-testing/dist/amd","main":"aurelia-testing"},{"name":"bootstrap","location":"../node_modules/bootstrap/dist","main":"js/bootstrap.min"}],"stubModules":["text"],"shim":{"bootstrap":{"deps":["jquery"],"exports":"$"}},"bundles":{"app-bundle":["model/user","services/userService","app","environment","main","model/option","model/issue","model/decision","model/issueToVote","services/issueService","modules/decisions","modules/home","modules/issues","modules/toDecideIssues","modules/userVotes","modules/votes","resources/index"]}})}
+function _aureliaConfigureModuleLoader(){requirejs.config({"baseUrl":"src/","paths":{"text":"../scripts/text","aurelia-binding":"../node_modules\\aurelia-binding\\dist\\amd\\aurelia-binding","aurelia-bootstrapper":"../node_modules\\aurelia-bootstrapper\\dist\\amd\\aurelia-bootstrapper","aurelia-dependency-injection":"../node_modules\\aurelia-dependency-injection\\dist\\amd\\aurelia-dependency-injection","aurelia-event-aggregator":"../node_modules\\aurelia-event-aggregator\\dist\\amd\\aurelia-event-aggregator","aurelia-framework":"../node_modules\\aurelia-framework\\dist\\amd\\aurelia-framework","aurelia-history":"../node_modules\\aurelia-history\\dist\\amd\\aurelia-history","aurelia-history-browser":"../node_modules\\aurelia-history-browser\\dist\\amd\\aurelia-history-browser","aurelia-loader":"../node_modules\\aurelia-loader\\dist\\amd\\aurelia-loader","aurelia-loader-default":"../node_modules\\aurelia-loader-default\\dist\\amd\\aurelia-loader-default","aurelia-logging":"../node_modules\\aurelia-logging\\dist\\amd\\aurelia-logging","aurelia-logging-console":"../node_modules\\aurelia-logging-console\\dist\\amd\\aurelia-logging-console","aurelia-metadata":"../node_modules\\aurelia-metadata\\dist\\amd\\aurelia-metadata","aurelia-pal":"../node_modules\\aurelia-pal\\dist\\amd\\aurelia-pal","aurelia-pal-browser":"../node_modules\\aurelia-pal-browser\\dist\\amd\\aurelia-pal-browser","aurelia-path":"../node_modules\\aurelia-path\\dist\\amd\\aurelia-path","aurelia-polyfills":"../node_modules\\aurelia-polyfills\\dist\\amd\\aurelia-polyfills","aurelia-route-recognizer":"../node_modules\\aurelia-route-recognizer\\dist\\amd\\aurelia-route-recognizer","aurelia-router":"../node_modules\\aurelia-router\\dist\\amd\\aurelia-router","aurelia-task-queue":"../node_modules\\aurelia-task-queue\\dist\\amd\\aurelia-task-queue","aurelia-templating":"../node_modules\\aurelia-templating\\dist\\amd\\aurelia-templating","aurelia-templating-binding":"../node_modules\\aurelia-templating-binding\\dist\\amd\\aurelia-templating-binding","jquery":"../node_modules\\jquery\\dist\\jquery","app-bundle":"../scripts/app-bundle"},"packages":[{"name":"aurelia-templating-resources","location":"../node_modules/aurelia-templating-resources/dist/amd","main":"aurelia-templating-resources"},{"name":"aurelia-templating-router","location":"../node_modules/aurelia-templating-router/dist/amd","main":"aurelia-templating-router"},{"name":"aurelia-testing","location":"../node_modules/aurelia-testing/dist/amd","main":"aurelia-testing"},{"name":"bootstrap","location":"../node_modules/bootstrap/dist","main":"js/bootstrap.min"}],"stubModules":["text"],"shim":{"bootstrap":{"deps":["jquery"],"exports":"$"}},"bundles":{"app-bundle":["model/user","services/userService","app","environment","main","model/option","model/issue","model/decision","model/issueToVote","services/issueService","modules/decisions","modules/home","modules/issues","modules/toDecideIssues","modules/userVotes","modules/votes","resources/index"]}})}

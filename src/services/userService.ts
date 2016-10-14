@@ -9,15 +9,15 @@ export class UserService {
     ];
     currentUser: User;
 
-    getAllUsers() {
+    getAllUsers(): User[] {
         return this.users;
     }
 
-    getCurrentUser() {
+    getCurrentUser(): User {
         return this.currentUser;
     }
 
-    switchUser(user: User) {
+    switchUser(user: User): void {
         this.currentUser = user;
     }
 }

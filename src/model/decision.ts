@@ -8,15 +8,15 @@ export class Decision {
     private _option: Option;
     private _user: User;
 
-    get issue() {
+    get issue(): Issue {
         return this._issue;
     }
 
-    get option() {
+    get option(): Option {
         return this._option;
     }
 
-    get userName(){
+    get userName(): string {
         return this._user.name;
     }
 
@@ -25,5 +25,4 @@ export class Decision {
         this._option = option;
         this._user = user;
     }
-
 }

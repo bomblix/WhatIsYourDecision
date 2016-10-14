@@ -12,7 +12,7 @@ export class Issue {
 
     private _requiredUsers: User[];
 
-    get name() {
+    get name(): string {
         return this._name;
     }
 
@@ -20,7 +20,7 @@ export class Issue {
         this._name = value;
     }
 
-    get description() {
+    get description(): string {
         return this._description;
     }
 
@@ -28,7 +28,7 @@ export class Issue {
         this._description = value;
     }
 
-    get author() {
+    get author(): User {
         return this._author;
     }
 
@@ -36,23 +36,23 @@ export class Issue {
         this._author = value;
     }
 
-    get options() {
+    get options(): Option[] {
         return this._options;
     }
 
-    get numberOfVotes() {
+    get numberOfVotes(): number {
         return this.getAllVotes().length;
     }
 
-    get numberOfRequiredVotes() {
+    get numberOfRequiredVotes(): number {
         return this._requiredUsers.length;
     }
 
-    get isDecided() {
+    get isDecided(): boolean {
         return this.numberOfVotes == this.numberOfRequiredVotes;
     }
 
-    get decision() {
+    get decision(): string {
         // stupid solution ;)
         if (this._options.length == 0) {
             return "";
@@ -65,15 +65,15 @@ export class Issue {
         this._options = new Array<Option>();
     }
 
-    public canUserVote(user: User) {
+    public canUserVote(user: User): boolean {
         return !this.getAllVotes().some(x => x == user);
     }
 
-    public setRequiredUsers(users: User[]) {
+    public setRequiredUsers(users: User[]): void {
         this._requiredUsers = users;
     }
 
-    public getUserDecision(user: User) {
+    public getUserDecision(user: User): Decision {
         let decision = undefined;
         let issue = this;
 
@@ -86,7 +86,7 @@ export class Issue {
         return decision;
     }
 
-    public getAllDecision() {
+    public getAllDecision(): Decision[] {
         let decisions = new Array<Decision>();
         let issue = this;
 
@@ -98,7 +98,7 @@ export class Issue {
         return decisions;
     }
 
-    private getAllVotes() {
+    private getAllVotes(): User[] {
         let array = new Array<User>();
         this._options.forEach(x => array = array.concat(x.votes));
         return array;
