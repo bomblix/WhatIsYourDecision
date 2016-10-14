@@ -62,4 +62,8 @@ export class Issues {
     public addOption() {
         this._newIssue.addEmptyOption();
     }
+
+    public removeOption(option:Option){
+        this._newIssue.removeOption(option);
+    }
 }

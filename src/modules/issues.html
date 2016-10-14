@@ -22,6 +22,7 @@
 			<div class="col-sm-10">
 				<template repeat.for="item of newIssue.options & validate">
 					<input type="text" value.bind="item.text & validate">
+					<button click.delegate="removeOption(item)">-</button>
 				</template>
 				<button click.delegate="addOption()">+</button>
 			</div>

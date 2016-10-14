@@ -104,6 +104,15 @@ export class Issue {
             this.options.push(new Option());
         }
     }
+
+    public removeOption(option: Option): void {
+        let ind = this.options.findIndex(o => o == option)
+        if (ind < 0) {
+            return;
+        }
+        this.options.splice(ind,1);
+    }
+
     private getAllVotes(): User[] {
         let array = new Array<User>();
         this._options.forEach(x => array = array.concat(x.votes));
